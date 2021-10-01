@@ -162,15 +162,19 @@ class MainActivity : AppCompatActivity() {
         val pressure = findViewById<TextView>(R.id.pressure).text
         val humidity = findViewById<TextView>(R.id.humidity).text
 
-        detailsIntent.putExtra("address", address)
-        detailsIntent.putExtra("temp", temp)
-        detailsIntent.putExtra("tempMin", tempMin)
-        detailsIntent.putExtra("tempMax", tempMax)
-        detailsIntent.putExtra("sunrise", sunrise)
-        detailsIntent.putExtra("sunset", sunset)
-        detailsIntent.putExtra("windSpeed", windSpeed)
-        detailsIntent.putExtra("pressure", pressure)
-        detailsIntent.putExtra("humidity", humidity)
+//        detailsIntent.putExtra("address", address)
+//        detailsIntent.putExtra("temp", temp)
+//        detailsIntent.putExtra("tempMin", tempMin)
+//        detailsIntent.putExtra("tempMax", tempMax)
+//        detailsIntent.putExtra("sunrise", sunrise)
+//        detailsIntent.putExtra("sunset", sunset)
+//        detailsIntent.putExtra("windSpeed", windSpeed)
+//        detailsIntent.putExtra("pressure", pressure)
+//        detailsIntent.putExtra("humidity", humidity)
+
+        var weather = ParcWeather(address.toString(), temp.toString(), tempMin.toString(), tempMax.toString(), sunrise.toString(), sunset.toString(), windSpeed.toString(), pressure.toString(), humidity.toString())
+        detailsIntent.putExtra("weatherInfo", weather)
+
         startActivity(detailsIntent)
     }
 
