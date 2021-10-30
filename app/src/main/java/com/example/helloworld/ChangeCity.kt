@@ -29,7 +29,6 @@ class ChangeCity : AppCompatActivity() {
     fun showData() {
         changableCity = intent.getStringExtra("city").toString()
         findViewById<TextView>(R.id.city).text = "Город: " + changableCity
-
     }
 
     fun goToMain(view: View) {
