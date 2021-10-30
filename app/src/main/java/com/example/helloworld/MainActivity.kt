@@ -78,6 +78,7 @@ class MainActivity : AppCompatActivity() {
 
             override fun onFailure(call: Call<WeatherResp>?, t: Throwable?) {
                 findViewById<ProgressBar>(R.id.loader).visibility = View.GONE
+                findViewById<RelativeLayout>(R.id.mainContainer).visibility = View.GONE
                 findViewById<TextView>(R.id.errortext).visibility = View.VISIBLE
                 findViewById<Button>(R.id.errorbutton).visibility = View.VISIBLE
                 findViewById<Button>(R.id.errorbutton2).visibility = View.VISIBLE
