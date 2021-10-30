@@ -1,6 +1,7 @@
 package com.example.helloworld
 
 import android.Manifest
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -29,123 +30,52 @@ class MainActivity : AppCompatActivity() {
 
     var city = "Москва"
     val api: String = "8118ed6ee68db2debfaaa5a44c832918"
-    lateinit var fusedLocationProviderClient: FusedLocationProviderClient
-    val PERMISSION_ID = 1010
+    lateinit var broadCastReceiver : BroadcastReceiver
 
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
-
-        getCity()
-
         weatherTask().execute()
-    }
-
-    fun CheckPermission():Boolean{
-        //this function will return a boolean
-        //true: if we have permission
-        //false if not
-        if(
-            ActivityCompat.checkSelfPermission(this,android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
-            ActivityCompat.checkSelfPermission(this,android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-        ){
-            return true
-        }
-
-        return false
-
-    }
-
-    fun getCity() {
-        var newCity = getChangeCity()
-        Log.d("Info", newCity.toString())
-        if (newCity != null) {
-            city = newCity
-        }
-        else {
-            getLastLocation()
-        }
+        getCity()
     }
 
     fun getPos(view: View){
-        RequestPermission()
-        getLastLocation()
         weatherTask().execute()
     }
 
-    fun RequestPermission(){
-        //this function will allows us to tell the user to requesut the necessary permsiion if they are not garented
-        ActivityCompat.requestPermissions(
-            this,
-            arrayOf(android.Manifest.permission.ACCESS_COARSE_LOCATION,android.Manifest.permission.ACCESS_FINE_LOCATION),
-            PERMISSION_ID
-        )
-    }
 
-    fun isLocationEnabled():Boolean{
-        var locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(
-            LocationManager.NETWORK_PROVIDER)
-    }
-
-    fun getLastLocation(){
-        if(CheckPermission()){
-            if(isLocationEnabled()){
-                if (ActivityCompat.checkSelfPermission(
-                        this,
-                        Manifest.permission.ACCESS_FINE_LOCATION
-                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                        this,
-                        Manifest.permission.ACCESS_COARSE_LOCATION
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
-                    // TODO: Consider calling
-                    //    ActivityCompat#requestPermissions
-                    // here to request the missing permissions, and then overriding
-                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                    //                                          int[] grantResults)
-                    // to handle the case where the user grants the permission. See the documentation
-                    // for ActivityCompat#requestPermissions for more details.
-                    return
-                }
-                fusedLocationProviderClient.lastLocation.addOnCompleteListener { task->
-                    var location: Location? = task.result
-                    if(location != null){
-                        var latitude = location.latitude
-                        var longitude = location.longitude
-                        city = getCityName(latitude,longitude)
-                    }
-                }
-            }
-        }else{
-            RequestPermission()
-        }
-    }
 
 
     fun getChangeCity(): String? {
         return intent.getStringExtra("changeCity")
     }
 
-    private fun getCityName(lat: Double,long: Double):String{
-        var cityName:String = ""
-        var countryName = ""
-        var geoCoder = Geocoder(this, Locale.getDefault())
-        var address = geoCoder.getFromLocation(lat,long,3)
-
-        cityName = address.get(0).locality
-        countryName = address.get(0).countryName
-        return cityName
+    fun getCity() {
+        var newCity = intent.getStringExtra("changeCity")
+        Log.d("Info", newCity.toString())
+        if (newCity != null) {
+            city = newCity
+        } else {
+            val intent = Intent(this, LocationService::class.java);
+            startService(intent)
+            broadCastReceiver = object : BroadcastReceiver() {
+                override fun onReceive(p0: Context?, intent: Intent?) {
+                    var data = intent?.getStringExtra("cityName")
+                    if (data != null) {
+                        city = data
+                    }
+                }
+            }
+        }
     }
+
+
 
     fun goToChangeCity(view: View) {
         var cityIntent = Intent(this, ChangeCity::class.java)
-
         cityIntent.putExtra("city", city)
-
         startActivity(cityIntent)
     }
 
@@ -161,16 +91,6 @@ class MainActivity : AppCompatActivity() {
         val windSpeed = findViewById<TextView>(R.id.wind).text
         val pressure = findViewById<TextView>(R.id.pressure).text
         val humidity = findViewById<TextView>(R.id.humidity).text
-
-//        detailsIntent.putExtra("address", address)
-//        detailsIntent.putExtra("temp", temp)
-//        detailsIntent.putExtra("tempMin", tempMin)
-//        detailsIntent.putExtra("tempMax", tempMax)
-//        detailsIntent.putExtra("sunrise", sunrise)
-//        detailsIntent.putExtra("sunset", sunset)
-//        detailsIntent.putExtra("windSpeed", windSpeed)
-//        detailsIntent.putExtra("pressure", pressure)
-//        detailsIntent.putExtra("humidity", humidity)
 
         var weather = ParcWeather(address.toString(), temp.toString(), tempMin.toString(), tempMax.toString(), sunrise.toString(), sunset.toString(), windSpeed.toString(), pressure.toString(), humidity.toString())
         detailsIntent.putExtra("weatherInfo", weather)
