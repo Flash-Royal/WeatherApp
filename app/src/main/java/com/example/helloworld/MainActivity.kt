@@ -7,6 +7,11 @@ import android.os.Bundle
 import android.os.IBinder
 import android.view.View
 import com.example.helloworld.databinding.ActivityMainBinding
+import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -21,9 +26,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private var city = "Москва"
     private val api: String = "8118ed6ee68db2debfaaa5a44c832918"
-    private var url = "http://api.openweathermap.org/"
-    private lateinit var retrofit: Retrofit
-    private lateinit var service: WeatherInt
+    private var url = "https://api.openweathermap.org/"
+    private lateinit var retrofitService: WeatherInt
     private var myService: LocationService? = null
     private var isBound = false
 
@@ -49,15 +53,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun getWeatherInfo() {
-        retrofit = Retrofit.Builder()
+        retrofitService = Retrofit.Builder()
             .baseUrl(url)
             .addConverterFactory(GsonConverterFactory.create())
-            .build()
-        service = retrofit.create(WeatherInt::class.java)
-        val call = service.getCurrentWeatherData(city, api, "metric", "ru")
-        call.enqueue(object : Callback<WeatherResp> {
-            @SuppressLint("SetTextI18n")
-            override fun onResponse(call: Call<WeatherResp>, response: Response<WeatherResp>) {
+            .addCallAdapterFactory(CoroutineCallAdapterFactory())
+            .build().create(WeatherInt::class.java)
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val response = retrofitService.getCurrentWeatherData(city, api, "metric", "ru")
+            withContext(Dispatchers.Main) {
                 if (response.isSuccessful) {
                     binding.mainContainer.visibility = View.VISIBLE
                     binding.errortext.visibility = View.GONE
@@ -68,7 +72,7 @@ class MainActivity : AppCompatActivity() {
                     val desc: String? = weatherInfo.weather.get(0).description
                     city = weatherInfo.name.toString()
                     binding.adress.text = weatherInfo.name
-                    binding.updatedAt.text = "Обновлено: " + SimpleDateFormat("dd/MM/yyyy HH:mm ", Locale.ENGLISH).format(Date(weatherInfo.dt*1000))
+                    binding.updatedAt.text = "Обновлено: " + SimpleDateFormat("dd/MM/yyyy HH:mm ", Locale.ENGLISH).format(Date(weatherInfo.dt * 1000))
                     binding.status.text = desc!!.capitalize()
                     binding.temp.text = weatherInfo.main?.temp.toString() + "°C"
                     binding.tempMin.text = weatherInfo.main?.tempMin.toString() + "°C"
@@ -79,22 +83,14 @@ class MainActivity : AppCompatActivity() {
                     binding.pressure.text = weatherInfo.main?.pressure.toString()
                     binding.humidity.text = weatherInfo.main?.humidity.toString()
 
-                }
-                else {
+                } else {
                     binding.mainContainer.visibility = View.GONE
                     binding.errortext.visibility = View.VISIBLE
                     binding.errorbutton.visibility = View.VISIBLE
                     binding.errorbutton2.visibility = View.VISIBLE
                 }
             }
-
-            override fun onFailure(call: Call<WeatherResp>?, t: Throwable?) {
-                binding.mainContainer.visibility = View.GONE
-                binding.errortext.visibility = View.VISIBLE
-                binding.errorbutton.visibility = View.VISIBLE
-                binding.errorbutton2.visibility = View.VISIBLE
-            }
-        })
+        }
     }
 
     fun getPos(view: View){
