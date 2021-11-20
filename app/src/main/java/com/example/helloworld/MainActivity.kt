@@ -1,18 +1,11 @@
 package com.example.helloworld
 
 import android.annotation.SuppressLint
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
+import android.os.IBinder
 import android.view.View
-import android.widget.Button
-import android.widget.ProgressBar
-import android.widget.RelativeLayout
-import android.widget.TextView
 import com.example.helloworld.databinding.ActivityMainBinding
 import retrofit2.Call
 import retrofit2.Callback
@@ -29,9 +22,23 @@ class MainActivity : AppCompatActivity() {
     private var city = "Москва"
     private val api: String = "8118ed6ee68db2debfaaa5a44c832918"
     private var url = "http://api.openweathermap.org/"
-    private lateinit var broadCastReceiver : BroadcastReceiver
     private lateinit var retrofit: Retrofit
     private lateinit var service: WeatherInt
+    private var myService: LocationService? = null
+    private var isBound = false
+
+    private val myConnection = object : ServiceConnection {
+        override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
+            val binder = p1 as LocationService.LocalBinder
+            myService = binder.getService()
+            isBound = true
+        }
+
+        override fun onServiceDisconnected(p0: ComponentName?) {
+            isBound = false
+        }
+
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -96,37 +103,38 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun getCity() {
-        var newCity = intent.getStringExtra("changeCity")
+        val newCity = intent.getStringExtra("changeCity")
         if (newCity != null) {
             city = newCity
         }
     }
 
-    fun changeCity() {
-        val intent = Intent(this, LocationService::class.java);
-        startService(intent)
-        broadCastReceiver = object : BroadcastReceiver() {
-            override fun onReceive(p0: Context?, intent: Intent?) {
-                var data = intent?.getStringExtra("cityName")
+    override fun onStart() {
+        super.onStart()
 
-                if (data != null) {
-                    city = data
-                }
-            }
+        val intent = Intent(this, LocationService::class.java)
+        bindService(intent, myConnection, Context.BIND_AUTO_CREATE)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        unbindService(myConnection)
+    }
+
+    fun changeCity() {
+        if (isBound) {
+            city = myService?.getCity().toString()
         }
-        val filter = IntentFilter(MainActivity::class.java.name)
-        registerReceiver(broadCastReceiver, filter)
-        Log.d("Info", city)
     }
 
     fun goToChangeCity(view: View) {
-        var cityIntent = Intent(this, ChangeCity::class.java)
+        val cityIntent = Intent(this, ChangeCity::class.java)
         cityIntent.putExtra("city", city)
         startActivity(cityIntent)
     }
 
     fun goToDetails(view: View) {
-        var detailsIntent = Intent(this, ActivityOfDetails::class.java)
+        val detailsIntent = Intent(this, ActivityOfDetails::class.java)
 
         val address = binding.adress.text
         val temp = binding.temp.text
@@ -138,7 +146,7 @@ class MainActivity : AppCompatActivity() {
         val pressure = binding.pressure.text
         val humidity = binding.humidity.text
 
-        var weather = ParcWeather(address.toString(), temp.toString(), tempMin.toString(), tempMax.toString(), sunrise.toString(), sunset.toString(), windSpeed.toString(), pressure.toString(), humidity.toString())
+        val weather = ParcWeather(address.toString(), temp.toString(), tempMin.toString(), tempMax.toString(), sunrise.toString(), sunset.toString(), windSpeed.toString(), pressure.toString(), humidity.toString())
         detailsIntent.putExtra("weatherInfo", weather)
 
         startActivity(detailsIntent)

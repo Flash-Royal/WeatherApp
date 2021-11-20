@@ -3,11 +3,8 @@ package com.example.helloworld
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.View
-import android.widget.TextView
 import com.example.helloworld.databinding.ActivityOfDetailsBinding
-import org.w3c.dom.Text
 
 
 class ActivityOfDetails : AppCompatActivity() {

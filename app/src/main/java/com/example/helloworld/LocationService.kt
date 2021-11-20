@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
+import android.os.Binder
 import android.os.IBinder
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -17,13 +18,8 @@ import java.util.*
 class LocationService : Service() {
 
     lateinit var fusedLocationProviderClient: FusedLocationProviderClient
-    val PERMISSION_ID = 1010
-
-    override fun onCreate() {
-        super.onCreate()
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
-        getLastLocation()
-    }
+    private val myBinder = LocalBinder()
+    private var city = ""
 
     fun CheckPermission():Boolean{
         if(
@@ -36,12 +32,12 @@ class LocationService : Service() {
     }
 
     fun isLocationEnabled():Boolean{
-        var locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(
             LocationManager.NETWORK_PROVIDER)
     }
 
-    fun getLastLocation() {
+    fun changeLastLocation() {
         if(CheckPermission()){
             if(isLocationEnabled()){
                 if (ActivityCompat.checkSelfPermission(
@@ -55,40 +51,36 @@ class LocationService : Service() {
                     return
                 }
                 fusedLocationProviderClient.lastLocation.addOnCompleteListener { task->
-                    var location: Location? = task.result
+                    val location: Location? = task.result
                     if(location != null){
-                        var latitude = location.latitude
-                        var longitude = location.longitude
-                        var city = getCityName(latitude,longitude)
-                        sendBroadCast(city)
+                        val latitude = location.latitude
+                        val longitude = location.longitude
+                        city = getCityName(latitude,longitude)
                     }
                 }
             }
         }
-        stopSelf()
     }
 
-    private fun getCityName(lat: Double,long: Double):String{
-        var cityName = ""
-        var geoCoder = Geocoder(this, Locale.getDefault())
-        var address = geoCoder.getFromLocation(lat,long,3)
+    private fun getCityName(lat: Double, long: Double): String {
+        val geoCoder = Geocoder(this, Locale.getDefault())
+        val address = geoCoder.getFromLocation(lat, long, 3)
 
-        cityName = address[0].locality
-        return cityName
+        return address[0].locality
     }
 
-    fun sendBroadCast(city: String?) {
-        val intent = Intent(MainActivity::class.java.name)
-        intent.putExtra("cityName", city)
-        sendBroadcast(intent)
+    override fun onBind(intent: Intent): IBinder {
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
+        changeLastLocation()
+        return myBinder
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        stopSelf()
+    fun getCity() : String {
+        return city
     }
-
-    override fun onBind(intent: Intent): IBinder? {
-        return null
+    inner class LocalBinder: Binder() {
+        fun getService(): LocationService {
+            return this@LocationService
+        }
     }
 }

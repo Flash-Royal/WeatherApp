@@ -3,13 +3,8 @@ package com.example.helloworld
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.View
-import android.widget.EditText
-import android.widget.TextView
-import android.widget.Toast
 import com.example.helloworld.databinding.ActivityChangeCityBinding
-import com.example.helloworld.databinding.ActivityMainBinding
 
 class ChangeCity : AppCompatActivity() {
 
