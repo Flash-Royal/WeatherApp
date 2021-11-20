@@ -149,20 +149,20 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         android:text="Обновить"
         android:onClick="getPos">
     </Button>
     <TextView
-        android:id="@+id/temp_min"
+        android:id="@+id/tempMin"
         android:visibility="gone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Min temp">
     </TextView>
     <TextView
-        android:id="@+id/temp_max"
+        android:id="@+id/tempMax"
         android:visibility="gone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

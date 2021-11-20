@@ -8,32 +8,36 @@ import android.view.View
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import com.example.helloworld.databinding.ActivityChangeCityBinding
+import com.example.helloworld.databinding.ActivityMainBinding
 
 class ChangeCity : AppCompatActivity() {
 
-    var changableCity = ""
+    private var changableCity = ""
+    private lateinit var binding: ActivityChangeCityBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_change_city)
+        binding = ActivityChangeCityBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         showData()
     }
 
     fun newCity(view: View) {
         val mainIntent = Intent(this, MainActivity::class.java)
-        changableCity = findViewById<EditText>(R.id.textEdit).text.toString()
+        changableCity = binding.textEdit.text.toString()
         mainIntent.putExtra("changeCity", changableCity)
         startActivity(mainIntent)
     }
 
     fun showData() {
         changableCity = intent.getStringExtra("city").toString()
-        findViewById<TextView>(R.id.city).text = "Город: " + changableCity
+        binding.city.text = "Город: " + changableCity
     }
 
     fun goToMain(view: View) {
         val mainIntent = Intent(this, MainActivity::class.java)
-
+        mainIntent.putExtra("changeCity", changableCity)
         startActivity(mainIntent)
     }
 }
