@@ -59,8 +59,10 @@ class MainActivity : AppCompatActivity() {
             @SuppressLint("SetTextI18n")
             override fun onResponse(call: Call<WeatherResp>, response: Response<WeatherResp>) {
                 if (response.isSuccessful) {
-                    binding.loader.visibility = View.GONE
                     binding.mainContainer.visibility = View.VISIBLE
+                    binding.errortext.visibility = View.GONE
+                    binding.errorbutton.visibility = View.GONE
+                    binding.errorbutton2.visibility = View.GONE
 
                     val weatherInfo = response.body()!!
                     val desc: String? = weatherInfo.weather.get(0).description
@@ -79,7 +81,6 @@ class MainActivity : AppCompatActivity() {
 
                 }
                 else {
-                    binding.loader.visibility = View.GONE
                     binding.mainContainer.visibility = View.GONE
                     binding.errortext.visibility = View.VISIBLE
                     binding.errorbutton.visibility = View.VISIBLE
@@ -88,7 +89,6 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onFailure(call: Call<WeatherResp>?, t: Throwable?) {
-                binding.loader.visibility = View.GONE
                 binding.mainContainer.visibility = View.GONE
                 binding.errortext.visibility = View.VISIBLE
                 binding.errorbutton.visibility = View.VISIBLE
