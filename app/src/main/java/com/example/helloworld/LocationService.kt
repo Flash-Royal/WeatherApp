@@ -17,7 +17,7 @@ import java.util.*
 
 class LocationService : Service() {
 
-    lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private val myBinder = LocalBinder()
     private var city = ""
 
